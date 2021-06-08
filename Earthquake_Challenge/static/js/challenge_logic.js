@@ -15,12 +15,6 @@ let satelliteStreets = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/sate
 	accessToken: API_KEY
 });
 
-// Create the map object with center, zoom level and default layer.
-let map = L.map('mapid', {
-	center: [40.7, -94.5],
-	zoom: 3,
-	layers: [streets]
-});
 
 // Create a base layer that holds all three maps.
 let baseMaps = {
@@ -31,11 +25,22 @@ let baseMaps = {
 // 1. Add a 2nd layer group for the tectonic plate data.
 let allEarthquakes = new L.LayerGroup();
 
+let tectonicPlates = new L.LayerGroup();
+
 
 // 2. Add a reference to the tectonic plates group to the overlays object.
 let overlays = {
-  "Earthquakes": allEarthquakes
+  "Earthquakes": allEarthquakes,
+  "Plates": tectonicPlates
 };
+
+// Create the map object with center, zoom level and default layer.
+let map = L.map('mapid', {
+	center: [40.7, -94.5],
+	zoom: 3,
+	layers: [streets, allEarthquakes]
+});
+
 
 // Then we add a control to the map that will allow the user to change which
 // layers are visible.
@@ -92,7 +97,6 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
   L.geoJson(data, {
     	// We turn each feature into a circleMarker on the map.
     	pointToLayer: function(feature, latlng) {
-      		console.log(data);
       		return L.circleMarker(latlng);
         },
       // We set the style for each circleMarker using our styleInfo function.
@@ -139,9 +143,19 @@ legend.onAdd = function() {
   // Finally, we our legend to the map.
   legend.addTo(map);
 
-
-  // 3. Use d3.json to make a call to get our Tectonic Plate geoJSON data.
-  d3.json().then(() {
-    
-  });
 });
+
+// 3. Use d3.json to make a call to get our Tectonic Plate geoJSON data.
+d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then(function(data) {
+// Creating a GeoJSON layer with the retrieved data.
+console.log(data);
+L.geoJson(data, {
+  color: "grey",
+  weight: 2
+// Add plateData to tectonicPlates LayerGroups 
+}).addTo(tectonicPlates);
+// Add tectonicPlates Layer to the Map
+tectonicPlates.addTo(map);
+});
+
+
